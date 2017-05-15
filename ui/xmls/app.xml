@@ -1,0 +1,20 @@
+<AppWindow>
+    <Frame bd="2" bg="green" width="400" height="300">
+        <Meta>
+            <pack>
+                <fill>tk.BOTH</fill>
+                <side>tk.TOP</side>
+                <expand>True</expand>
+            </pack>
+        </Meta>
+        <ListBox width="200" height = "300" bg="cyan" bd="2">
+            <Meta>
+                <pack>
+                    <fill>tk.Y</fill>
+                    <expand>False</expand>
+                    <side>tk.LEFT</side>
+                </pack>
+            </Meta>
+        </ListBox>
+    </Frame>
+</AppWindow>
