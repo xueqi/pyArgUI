@@ -4,6 +4,7 @@ Created on May 11, 2017
 @author: xueqi
 '''
 import Tkinter as _tk
+import widgets as _widgets
 class ProgramWindow(_tk.Frame, object): 
     '''
     The program window to show the program inputs
@@ -40,13 +41,12 @@ class ProgramWindow(_tk.Frame, object):
     def setStderr(self, stderr):
         if stderr not in self._stderr:
             self._stderr.append(stderr)
+            
     def buildUI(self):
-        import time
-        st = time.time()
         if not self._command: return
         if self._frame is not None:
             self._frame.destroy()
-        self._frame = _tk.Frame(self)
+        self._frame = _widgets.ScrollFrame(self)
         # Title
         label = _tk.Label(self._frame, text = self._command.name, bg = "powder blue")
         label.pack(side=_tk.TOP, fill = _tk.X)
@@ -56,8 +56,10 @@ class ProgramWindow(_tk.Frame, object):
         for groupName, widgetGroup in self._command.getWidgetGroups().items():
             groupWidget = _tk.Frame(self._frame)
             groupWidget.pack(side=_tk.TOP, fill = _tk.BOTH)
-            groupTitle = _tk.Label(groupWidget, text = groupName)
-            groupTitle.pack(side=_tk.TOP, fill = _tk.NONE, expand = False, anchor=_tk.W)
+            groupTitle = _tk.Label(groupWidget, text = groupName,
+                                   bg = "gray", justify = _tk.LEFT) #, relief = _tk.RAISED)
+            groupTitle.pack(side=_tk.TOP, fill = _tk.X,
+                             expand = False)
             groupWidgetArea = _tk.Frame(groupWidget)
             groupWidgetArea.pack(side = _tk.TOP, fill = _tk.BOTH)
             # The widgets
@@ -73,16 +75,14 @@ class ProgramWindow(_tk.Frame, object):
                 i += 1
         
         # add run button
-        
         buttonGroup = _tk.Frame(self._frame)
         buttonGroup.pack(fill=_tk.X)
         runButton = _tk.Button(self._frame, text = "Run")
         runButton.pack(in_ = buttonGroup)
         runButton.bind("<Button-1>", self.runCommand)
-        self._frame.pack(fill = _tk.BOTH)
+        self._frame.pack(fill = _tk.BOTH, expand = True)
         self._frame.update()
         self._frame.update_idletasks()
-        print "end", "total time:", time.time() - st
         
     def runCommand(self, event = None):
 
@@ -94,7 +94,7 @@ class ProgramWindow(_tk.Frame, object):
             self.outputlog = self._stdout[0]
         if len(self._stderr) > 0:
             self.errorlog = self._stderr[0]
-        self._command.run(stdout = self.outputlog, stderr = self.errorlog)
+        self._command.run(stdouts = self.outputlog, stderrs = self.errorlog)
     @property
     def command(self):
         return self._command
@@ -102,15 +102,7 @@ class ProgramWindow(_tk.Frame, object):
     @command.setter
     def command(self, value):
         self._command = value
-#         import cProfile, pstats
-#         pr = cProfile.Profile()
-#         import StringIO
-#         pr.enable()
+
         self.buildUI()
-#         pr.disable()
-#         s = StringIO.StringIO()
-#         sortby = 'cumulative'
-#         ps = pstats.Stats(pr, stream=s).sort_stats(sortby)
-#         ps.print_stats()
-#         print s.getvalue()
+
 #     

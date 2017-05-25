@@ -4,6 +4,7 @@
 """
 import os, sys
 import textwrap
+import collections as _collections
 
 try:
     from gooey import Gooey, GooeyParser
@@ -49,17 +50,39 @@ except:
         else:
             return wrapper
 
+class _ArgumentGroup(argparse._ArgumentGroup):
+    def __init__(self, *args, **kwargs):
+        super(_ArgumentGroup, self).__init__(*args, **kwargs)
+        self.options = _collections.OrderedDict()
+        self._widgets = {}
+    def add_argument(self, *args, **kwargs):
+        widget = kwargs.get('widget', None)
+        if not hasattr(self, 'widgets'):  # this detect if class is GooeyParser
+            kwargs.pop('widget', None)
+            
+        if 'help' in kwargs: kwargs['help'] = textwrap.fill(kwargs['help'], 35)
+        
+        action = super(_ArgumentGroup, self).add_argument(*args, **kwargs)
+        
+        # add to widgets
+        if action.dest != "help":
+            self.options[action.dest] = action
+            if widget is not None:
+                self._widgets[action.dest] = widget
+        
+        return action
+
 class ChuffParser(Parser):
     '''
         ChuffParser. Wrapper of argparse.ArgumentParser or GooeyParser
     '''
     def __init__(self, **kwargs):
-        import collections as _collections
         kwargs['fromfile_prefix_chars'] = '@'
         self.options = _collections.OrderedDict()
         self._widgets = {}
+        self._groups = []
         super(ChuffParser, self).__init__(**kwargs)
-        
+    
     def add_argument(self, *args, **kwargs):
         widget = kwargs.get('widget', None)
         if not hasattr(self, 'widgets'):  # this detect if class is GooeyParser
@@ -72,7 +95,6 @@ class ChuffParser(Parser):
         # add to widgets
         if action.dest != "help":
             self.options[action.dest] = action
-            print widget
             if widget is not None:
                 self._widgets[action.dest] = widget
         
@@ -82,3 +104,11 @@ class ChuffParser(Parser):
         if self.description is None: self.description = ''
         self.description += ("\nCurrent working directory: \n%s" % os.getcwd())
         return super(ChuffParser, self).parse_args(*args, **kwargs)
+    
+    def add_argument_group(self, *args, **kwargs):
+        group = _ArgumentGroup(self, *args, **kwargs)
+        self._action_groups.append(group)
+        self._groups.append(group)
+        return group
+        
+    

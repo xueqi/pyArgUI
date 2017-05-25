@@ -8,7 +8,6 @@ import Tkinter as _tk
 import widgets as _widgets
 from ui.cmdmodel import CommandModel
 from ui.program import ProgramWindow
-import cmd
 
 class MyMainWindow(_widgets.mainwindow.AppWindow):
     def __init__(self, parent, *args, **kwargs):
@@ -21,41 +20,42 @@ class MyMainWindow(_widgets.mainwindow.AppWindow):
         parent.grid_columnconfigure(1, weight = 1)
         parent.grid_rowconfigure(0, minsize=400)
         parent.grid_rowconfigure(1, minsize=100)
-        cmdListPanel = _tk.Frame(parent, bg = "cyan")
+        cmdListPanel = _tk.Frame(parent)
         cmdListPanel.grid(row=0, column = 0, sticky = _tk.N + _tk.S + _tk.W + _tk.E)
         lbl = _tk.Label(cmdListPanel, text = "Commands")
         lbl.pack(side = _tk.TOP)
         # command selection
         from ui.command import CommandBox
         cmdbox = CommandBox(cmdListPanel)
-        cmdbox.bind("<ButtonRelease-1>", self.showProgram)
+        cmdbox.bind("<Double-Button-1>", self.showProgram)
         cmdbox.pack(side= _tk.TOP, expand=True, fill = _tk.BOTH)
         self.cmdListBox = cmdbox
         
         # the program panel
-        progPanel = _tk.Frame(parent, width = "400", height = "400", bg = "green")
-        progWindow = ProgramWindow(progPanel, bg="red")
-        progWindow.pack(fill=_tk.BOTH, expand = True)
+        progPanel = _widgets.Frame(parent, bg = "green")
+        progWindow = ProgramWindow(progPanel, bd = 2, bg = 'gray', relief = _tk.SOLID)
+        progWindow.pack(fill=_tk.BOTH, expand = True, in_ = progPanel)
         self.programWindow = progWindow
         progPanel.grid(row=0, column = 1, sticky = _tk.N + _tk.S + _tk.W + _tk.E)
 
         parent.grid_rowconfigure(0, weight = 1)
         
-        logPanel = _widgets.TabPanel(parent, bg="purple")
+        logPanel = _widgets.TabPanel(parent)
         logPanel.grid(row=1, column = 1, sticky = _tk.N + _tk.S + _tk.W + _tk.E)
+
+        self.outputlog = _widgets.StreamTextView(logPanel, bg = "gray")
+        logPanel.add(self.outputlog, text = "Output")
         
-        self.errorlog = _widgets.StreamTextView(logPanel, height = "100")
-        logPanel.addTab("error", self.errorlog)
-        
-        self.outputlog = _widgets.StreamTextView(logPanel, height = "100")
-        logPanel.addTab("output", self.outputlog)
-        
-        logPanel.setCurrentTab(0)
+        self.errorlog = _widgets.StreamTextView(logPanel, bg = "red")
+        logPanel.add(self.errorlog, text = "Error")
+                
+        logPanel.select(0)
         
     def showProgram(self, event):
         cmdbox = event.widget
         cmdModel = cmdbox.getCurrentModel()
         self.programWindow.command = cmdModel
+        
         self.programWindow.setStdout(self.outputlog)
         self.programWindow.setStderr(self.errorlog)
     
@@ -64,36 +64,9 @@ class MyMainWindow(_widgets.mainwindow.AppWindow):
         self.cmdListBox.addCommand(cmm)
     
         
-class MyApp(object):
-    '''
-    classdocs
-    '''
-    def __init__(self, params):
-        '''
-        Constructor
-        '''
-        pass
-    
-    def run(self):
-        import os
-        root = _tk.Tk()
-        root.deiconify()
-        root.withdraw()
-        w = MyMainWindow(root, width = 800, height = 600)
-        w.isMasterWindow = True
-        w.pack_propagate(False)
-        w.geometry("800x600")
-        #w.resizable(width=False, height = False)
-        cmds = ['cf_init_project', 'cf_ctf', 'cf_init_frealign']
-        cmdDir = "/home/xueqi/py_cf_mt/commands/"
-        for cmd in cmds:
-            w.addCommand(os.path.join(cmdDir, cmd))
-        
-        root.wm_title("root")
-        w.wm_title("MainWindow")
-        root.mainloop()
+
         
 if __name__ == "__main__":
     import sys
-    MyApp(sys.argv).run()
+    # MyApp(sys.argv).run()
         
